@@ -181,6 +181,19 @@ body[data-theme="light"] .filter select {
   box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
 }
 
+/* Responsive */
+@media (max-width: 768px) {
+  .filter select,
+  .filter input {
+    position: relative; /* بدل absolute عشان يبقوا جوه الفلتر بشكل طبيعي */
+    right: 0;
+    width: 100%; /* ياخدوا كامل العرض المتاح */
+    margin: 10px 0; /* مسافة بين العناصر */
+    padding: 10px 14px; /* تقليل البادينج شوي عشان يناسب الشاشات الصغيرة */
+    font-size: 14px;
+  }
+}
+
 /* ===== Grid ===== */
 .grid {
   padding: 50px;
