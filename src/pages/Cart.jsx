@@ -1,25 +1,56 @@
 import { useContext } from "react";
+import { Link } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 
 function Cart() {
-  const { cart, removeFromCart } = useContext(CartContext);
-  const total = cart.reduce((acc, i) => acc + i.price, 0);
+  const { cart, removeFromCart, updateQty, clearCart } = useContext(CartContext);
+  const total = cart.reduce((acc, i) => acc + i.price * i.qty, 0);
+
+  if (cart.length === 0) {
+    return (
+      <div className="empty-page">
+        <div className="empty-icon">🛒</div>
+        <h2>Your cart is empty</h2>
+        <p>Add some products to get started</p>
+        <Link to="/" className="btn-primary">Browse Products</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="cart">
-      <h2>Your Cart</h2>
-
-      {cart.length === 0 && <p>Cart is empty</p>}
+      <div className="cart-header">
+        <h2>Your Cart ({cart.reduce((a, i) => a + i.qty, 0)} items)</h2>
+        <button className="clear-btn" onClick={clearCart}>Clear All</button>
+      </div>
 
       {cart.map((item) => (
         <div key={item.id} className="cart-item">
-          <h4>{item.title}</h4>
-          <p>${item.price}</p>
-          <button onClick={() => removeFromCart(item.id)}>Remove</button>
+          <img src={item.image} alt={item.title} className="cart-item-img" />
+
+          <div className="cart-item-info">
+            <h4>{item.title.slice(0, 50)}…</h4>
+            <p className="cart-item-price">${(item.price * item.qty).toFixed(2)}</p>
+          </div>
+
+          <div className="qty-controls">
+            <button onClick={() => updateQty(item.id, -1)}>−</button>
+            <span>{item.qty}</span>
+            <button onClick={() => updateQty(item.id, +1)}>+</button>
+          </div>
+
+          <button className="remove-btn" onClick={() => removeFromCart(item.id)}>
+            🗑️
+          </button>
         </div>
       ))}
 
-      <h3>Total: ${total.toFixed(2)}</h3>
+      <div className="cart-footer">
+        <h3>Total: <span className="total-amount">${total.toFixed(2)}</span></h3>
+        <Link to="/checkout" className="btn-primary checkout-btn">
+          Proceed to Checkout →
+        </Link>
+      </div>
     </div>
   );
 }

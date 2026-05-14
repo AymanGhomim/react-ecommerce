@@ -1,19 +1,22 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import "./index.css";
+import App from "./App.jsx";
 import CartProvider from "./context/CartProvider";
 import ThemeProvider from "./context/ThemeProvider";
-import "./index.css";
+import WishlistProvider from "./context/WishlistProvider";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
     <BrowserRouter>
-      <CartProvider>
-        <ThemeProvider>
-          <App />
-        </ThemeProvider>
-      </CartProvider>
+      <ThemeProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <App />
+          </WishlistProvider>
+        </CartProvider>
+      </ThemeProvider>
     </BrowserRouter>
-  </React.StrictMode>,
+  </StrictMode>
 );
