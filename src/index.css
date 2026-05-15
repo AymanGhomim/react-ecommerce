@@ -425,3 +425,18 @@ body[data-theme="light"] .nav { background: rgba(255,255,255,0.88); }
   .recommendations { padding: 0 20px; }
   .checkout-page { padding: 24px 20px 40px; }
 }
+
+/* ===== No Results ===== */
+.no-results {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.no-results span { font-size: 48px; }
+.no-results p { font-size: var(--font-lg); }
+.no-results strong { color: var(--gold); }

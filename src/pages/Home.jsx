@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import FilterBar from "../components/FilterBar";
 import Skeleton from "../components/Skeleton";
+import extraProducts from "../data/mockProducts";
 
 function Home() {
   const [products, setProducts] = useState([]);
@@ -13,7 +14,13 @@ function Home() {
 
   useEffect(() => {
     axios.get("https://fakestoreapi.com/products").then((res) => {
-      setProducts(res.data);
+      // Merge API products (20) + mock products (80+) = 100+
+      const merged = [...res.data, ...extraProducts];
+      setProducts(merged);
+      setLoading(false);
+    }).catch(() => {
+      // If API fails, use mock products only
+      setProducts(extraProducts);
       setLoading(false);
     });
   }, []);
@@ -37,16 +44,22 @@ function Home() {
 
       {!loading && (
         <p className="results-count">
-          Showing <strong>{filtered.length}</strong> products
+          Showing <strong>{filtered.length}</strong> of <strong>{products.length}</strong> products
         </p>
       )}
 
       <div className="grid">
         {loading
-          ? Array(8).fill().map((_, i) => <Skeleton key={i} />)
+          ? Array(12).fill().map((_, i) => <Skeleton key={i} />)
           : filtered.length > 0
           ? filtered.map((p) => <ProductCard key={p.id} product={p} />)
-          : <p className="no-results">No products found.</p>}
+          : (
+            <div className="no-results">
+              <span>🔍</span>
+              <p>No products found for "<strong>{search}</strong>"</p>
+            </div>
+          )
+        }
       </div>
     </>
   );
