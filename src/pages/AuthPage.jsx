@@ -1,171 +1,173 @@
 import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
-function AuthPage() {
-  const { login, register } = useContext(AuthContext);
-  const [mode, setMode] = useState("login"); // "login" | "register"
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
-  const [errors, setErrors] = useState({});
+const BASE = "https://ecommerce.routemisr.com/api/v1/auth";
+
+// ── Login ─────────────────────────────────────────────
+function LoginForm({ onSwitch }) {
+  const { saveToken } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const set = (key, val) => {
-    setForm((p) => ({ ...p, [key]: val }));
-    setErrors((p) => ({ ...p, [key]: "" }));
-  };
-
-  const validateLogin = () => {
-    const e = {};
-    if (!form.email.includes("@")) e.email = "Enter a valid email";
-    if (form.password.length < 6) e.password = "Password must be 6+ chars";
-    return e;
-  };
-
-  const validateRegister = () => {
-    const e = {};
-    if (!form.name.trim()) e.name = "Name is required";
-    if (!form.email.includes("@")) e.email = "Enter a valid email";
-    if (form.password.length < 6) e.password = "Password must be 6+ chars";
-    if (form.confirm !== form.password) e.confirm = "Passwords don't match";
-    return e;
-  };
-
-  const handleSubmit = async () => {
-    const errs = mode === "login" ? validateLogin() : validateRegister();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-
-    if (mode === "login") {
-      const res = login(form.email, form.password);
-      if (!res.success) {
-        setErrors({ password: res.error });
-        toast.error(res.error);
-      } else {
-        toast.success("Welcome back! 👋");
+  const formik = useFormik({
+    initialValues: { email: "", password: "" },
+    validationSchema: Yup.object({
+      email:    Yup.string().required("Email is required").email("Enter a valid email"),
+      password: Yup.string().required("Password is required").min(6, "Min 6 characters"),
+    }),
+    onSubmit: async (values) => {
+      setLoading(true); setApiError("");
+      try {
+        const res = await axios.post(`${BASE}/signin`, values);
+        if (res.data.message === "success") {
+          saveToken(res.data.token, { name: res.data.user.name, email: res.data.user.email });
+          toast.success(`Welcome back, ${res.data.user.name}! 👋`);
+          navigate("/");
+        }
+      } catch (err) {
+        const msg = err.response?.data?.message || "Login failed";
+        setApiError(msg);
+        toast.error(msg);
       }
-    } else {
-      const res = register(form.name, form.email, form.password);
-      if (!res.success) {
-        setErrors({ email: res.error });
-        toast.error(res.error);
-      } else {
-        toast.success("Account created! 🎉");
+      setLoading(false);
+    },
+  });
+
+  return (
+    <div className="auth-fields">
+      {apiError && <div className="api-error">{apiError}</div>}
+      {[
+        { name: "email",    label: "Email",    type: "email",    placeholder: "you@example.com" },
+        { name: "password", label: "Password", type: "password", placeholder: "••••••••" },
+      ].map(({ name, label, type, placeholder }) => (
+        <div key={name} className="form-group">
+          <label>{label}</label>
+          <input
+            type={type} name={name} placeholder={placeholder}
+            value={formik.values[name]}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            className={formik.touched[name] && formik.errors[name] ? "input-error" : ""}
+          />
+          {formik.touched[name] && formik.errors[name] && (
+            <span className="error-msg">{formik.errors[name]}</span>
+          )}
+        </div>
+      ))}
+
+      <button className="auth-submit" onClick={formik.handleSubmit} disabled={loading}>
+        {loading ? <span className="btn-spinner"></span> : "Sign In →"}
+      </button>
+
+      <p className="auth-switch">
+        Don't have an account?{" "}
+        <button className="auth-switch-btn" onClick={onSwitch}>Sign Up</button>
+      </p>
+    </div>
+  );
+}
+
+// ── Register ──────────────────────────────────────────
+function RegisterForm({ onSwitch }) {
+  const { saveToken } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [apiError, setApiError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const formik = useFormik({
+    initialValues: { name: "", email: "", phone: "", password: "", rePassword: "" },
+    validationSchema: Yup.object({
+      name:       Yup.string().required("Name is required").min(3, "Min 3 chars").max(20, "Max 20 chars"),
+      email:      Yup.string().required("Email is required").email("Enter a valid email"),
+      phone:      Yup.string().required("Phone is required").matches(/^01[1250][0-9]{8}$/, "Enter a valid Egyptian phone"),
+      password:   Yup.string().required("Password is required").matches(/^[A-Z][a-z0-9]{5,}$/, "Must start with uppercase, min 6 chars"),
+      rePassword: Yup.string().required("Confirm your password").oneOf([Yup.ref("password")], "Passwords don't match"),
+    }),
+    onSubmit: async (values) => {
+      setLoading(true); setApiError("");
+      try {
+        const res = await axios.post(`${BASE}/signup`, values);
+        if (res.data.message === "success") {
+          saveToken(res.data.token, { name: res.data.user.name, email: res.data.user.email });
+          toast.success("Account created! 🎉");
+          navigate("/");
+        }
+      } catch (err) {
+        const msg = err.response?.data?.message || "Registration failed";
+        setApiError(msg);
+        toast.error(msg);
       }
-    }
-    setLoading(false);
-  };
+      setLoading(false);
+    },
+  });
+
+  return (
+    <div className="auth-fields">
+      {apiError && <div className="api-error">{apiError}</div>}
+      {[
+        { name: "name",       label: "Full Name",        type: "text",     placeholder: "John Doe" },
+        { name: "email",      label: "Email",            type: "email",    placeholder: "you@example.com" },
+        { name: "phone",      label: "Phone",            type: "tel",      placeholder: "01xxxxxxxxx" },
+        { name: "password",   label: "Password",         type: "password", placeholder: "Abc12345" },
+        { name: "rePassword", label: "Confirm Password", type: "password", placeholder: "••••••••" },
+      ].map(({ name, label, type, placeholder }) => (
+        <div key={name} className="form-group">
+          <label>{label}</label>
+          <input
+            type={type} name={name} placeholder={placeholder}
+            value={formik.values[name]}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            className={formik.touched[name] && formik.errors[name] ? "input-error" : ""}
+          />
+          {formik.touched[name] && formik.errors[name] && (
+            <span className="error-msg">{formik.errors[name]}</span>
+          )}
+        </div>
+      ))}
+
+      <button className="auth-submit" onClick={formik.handleSubmit} disabled={loading}>
+        {loading ? <span className="btn-spinner"></span> : "Create Account →"}
+      </button>
+
+      <p className="auth-switch">
+        Already have an account?{" "}
+        <button className="auth-switch-btn" onClick={onSwitch}>Sign In</button>
+      </p>
+    </div>
+  );
+}
+
+// ── Auth Page Shell ───────────────────────────────────
+export default function AuthPage() {
+  const [mode, setMode] = useState("login");
 
   return (
     <div className="auth-page">
       <div className="auth-card">
-        {/* Logo */}
         <div className="auth-logo">Store</div>
         <p className="auth-subtitle">
           {mode === "login" ? "Sign in to your account" : "Create a new account"}
         </p>
 
-        {/* Tabs */}
         <div className="auth-tabs">
-          <button
-            className={`auth-tab ${mode === "login" ? "active" : ""}`}
-            onClick={() => { setMode("login"); setErrors({}); }}
-          >
-            Sign In
-          </button>
-          <button
-            className={`auth-tab ${mode === "register" ? "active" : ""}`}
-            onClick={() => { setMode("register"); setErrors({}); }}
-          >
-            Sign Up
-          </button>
+          <button className={`auth-tab ${mode === "login" ? "active" : ""}`}
+            onClick={() => setMode("login")}>Sign In</button>
+          <button className={`auth-tab ${mode === "register" ? "active" : ""}`}
+            onClick={() => setMode("register")}>Sign Up</button>
         </div>
 
-        {/* Demo hint */}
-        {mode === "login" && (
-          <div className="demo-hint">
-            <span>Demo:</span> user@store.com / 123456
-          </div>
-        )}
-
-        {/* Fields */}
-        <div className="auth-fields">
-          {mode === "register" && (
-            <div className="form-group">
-              <label>Full Name</label>
-              <input
-                type="text"
-                placeholder="John Doe"
-                value={form.name}
-                onChange={(e) => set("name", e.target.value)}
-                className={errors.name ? "input-error" : ""}
-              />
-              {errors.name && <span className="error-msg">{errors.name}</span>}
-            </div>
-          )}
-
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={(e) => set("email", e.target.value)}
-              className={errors.email ? "input-error" : ""}
-            />
-            {errors.email && <span className="error-msg">{errors.email}</span>}
-          </div>
-
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={(e) => set("password", e.target.value)}
-              className={errors.password ? "input-error" : ""}
-            />
-            {errors.password && <span className="error-msg">{errors.password}</span>}
-          </div>
-
-          {mode === "register" && (
-            <div className="form-group">
-              <label>Confirm Password</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={form.confirm}
-                onChange={(e) => set("confirm", e.target.value)}
-                className={errors.confirm ? "input-error" : ""}
-              />
-              {errors.confirm && <span className="error-msg">{errors.confirm}</span>}
-            </div>
-          )}
-        </div>
-
-        <button
-          className="auth-submit"
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <span className="btn-spinner"></span>
-          ) : mode === "login" ? "Sign In →" : "Create Account →"}
-        </button>
-
-        <p className="auth-switch">
-          {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-          <button
-            className="auth-switch-btn"
-            onClick={() => { setMode(mode === "login" ? "register" : "login"); setErrors({}); }}
-          >
-            {mode === "login" ? "Sign Up" : "Sign In"}
-          </button>
-        </p>
+        {mode === "login"
+          ? <LoginForm onSwitch={() => setMode("register")} />
+          : <RegisterForm onSwitch={() => setMode("login")} />
+        }
       </div>
     </div>
   );
 }
-
-export default AuthPage;

@@ -1,33 +1,35 @@
 import axios from "axios";
 import { useEffect, useState, useContext } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { CartContext } from "../context/CartContext";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { CartContext }    from "../context/CartContext";
 import { WishlistContext } from "../context/WishlistContext";
 import StarRating from "../components/StarRating";
 
-function ProductDetails() {
+export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
-  const { addToCart } = useContext(CartContext);
-  const { toggleWishlist, isWishlisted } = useContext(WishlistContext);
+  const [product, setProduct]             = useState(null);
+  const [recommendations, setRecs]        = useState([]);
+  const [selectedImg, setSelectedImg]     = useState(null);
+  const { addToCart }                     = useContext(CartContext);
+  const { toggleWishlist, isWishlisted }  = useContext(WishlistContext);
 
   useEffect(() => {
     setProduct(null);
-    axios.get(`https://fakestoreapi.com/products/${id}`).then((res) => setProduct(res.data));
-    axios.get("https://fakestoreapi.com/products?limit=8").then((res) => {
-      setRecommendations(res.data.filter((p) => p.id !== Number(id)));
-    });
+    axios.get(`https://ecommerce.routemisr.com/api/v1/products/${id}`)
+      .then((res) => {
+        setProduct(res.data.data);
+        setSelectedImg(res.data.data.imageCover);
+      });
+    axios.get("https://ecommerce.routemisr.com/api/v1/products?limit=8")
+      .then((res) => setRecs(res.data.data.filter((p) => p._id !== id)));
   }, [id]);
 
   if (!product) return (
-    <div className="loading-center">
-      <div className="spinner"></div>
-    </div>
+    <div className="loading-center"><div className="spinner"></div></div>
   );
 
-  const wishlisted = isWishlisted(product.id);
+  const wishlisted = isWishlisted(product._id);
 
   return (
     <div>
@@ -35,22 +37,33 @@ function ProductDetails() {
 
       <div className="details">
         <div className="details-img-wrap">
-          <img src={product.image} alt={product.title} />
+          <img src={selectedImg} alt={product.title} />
+          {/* Thumbnail strip */}
+          {product.images?.length > 0 && (
+            <div className="img-thumbs">
+              {[product.imageCover, ...product.images].map((img, i) => (
+                <img
+                  key={i} src={img} alt=""
+                  className={`thumb ${selectedImg === img ? "active-thumb" : ""}`}
+                  onClick={() => setSelectedImg(img)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="details-info">
-          <span className="category-badge">{product.category}</span>
+          <span className="category-badge">{product.category?.name}</span>
           <h2>{product.title}</h2>
-
-          {product.rating && (
-            <StarRating rating={product.rating.rate} count={product.rating.count} />
+          <StarRating rating={product.ratingsAverage} count={product.ratingsQuantity} />
+          <p className="desc">{product.description}</p>
+          <h3 className="details-price">{product.price} EGP</h3>
+          {product.priceAfterDiscount && (
+            <p className="old-price">{product.priceAfterDiscount} EGP after discount</p>
           )}
 
-          <p className="desc">{product.description}</p>
-          <h3 className="details-price">${product.price}</h3>
-
           <div className="details-actions">
-            <button className="add-cart-btn" onClick={() => addToCart(product)}>
+            <button className="add-cart-btn" onClick={() => addToCart(product._id)}>
               🛒 Add to Cart
             </button>
             <button
@@ -63,20 +76,22 @@ function ProductDetails() {
         </div>
       </div>
 
+      {/* Recommendations */}
       <section className="recommendations">
         <h2>You May Also Like</h2>
         <div className="grid">
           {recommendations.map((rec) => (
-            <div key={rec.id} className="card">
-              <Link to={`/product/${rec.id}`}>
-                <img src={rec.image} alt={rec.title} />
+            <div key={rec._id} className="card">
+              <Link to={`/product/${rec._id}`}>
+                <img src={rec.imageCover} alt={rec.title} />
               </Link>
-              <h4>{rec.title.slice(0, 45)}…</h4>
-              {rec.rating && <StarRating rating={rec.rating.rate} />}
-              <p className="price">${rec.price}</p>
+              <span className="product-category">{rec.category?.name}</span>
+              <h4>{rec.title.split(" ").slice(0, 4).join(" ")}…</h4>
+              <StarRating rating={rec.ratingsAverage} />
+              <p className="price">{rec.price} EGP</p>
               <div className="actions">
-                <button onClick={() => addToCart(rec)}>Add to Cart</button>
-                <Link to={`/product/${rec.id}`} className="details-link">Details</Link>
+                <button onClick={() => addToCart(rec._id)}>Add to Cart</button>
+                <Link to={`/product/${rec._id}`} className="details-link">Details</Link>
               </div>
             </div>
           ))}
@@ -85,5 +100,3 @@ function ProductDetails() {
     </div>
   );
 }
-
-export default ProductDetails;

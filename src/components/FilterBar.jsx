@@ -1,23 +1,16 @@
-function FilterBar({ setSearch, setCategory, setSort }) {
+export default function FilterBar({ setSearch, setCategory, setSort }) {
+  const CATEGORIES = [
+    "Women's Fashion", "Men's Fashion", "Electronics", "Sports & Outdoors",
+    "Home & Garden", "Beauty & Personal Care", "Watches",
+  ];
+
   return (
     <div className="filter">
-      <input
-        placeholder="🔍  Search products..."
-        onChange={(e) => setSearch(e.target.value)}
-      />
-
+      <input placeholder="🔍  Search products..." onChange={(e) => setSearch(e.target.value)} />
       <select onChange={(e) => setCategory(e.target.value)}>
         <option value="">All Categories</option>
-        <option value="men's clothing">Men's Clothing</option>
-        <option value="women's clothing">Women's Clothing</option>
-        <option value="electronics">Electronics</option>
-        <option value="jewelery">Jewelery</option>
-        <option value="home & living">Home & Living</option>
-        <option value="sports & outdoors">Sports & Outdoors</option>
-        <option value="beauty">Beauty</option>
-        <option value="books">Books</option>
+        {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
       </select>
-
       <select onChange={(e) => setSort(e.target.value)}>
         <option value="">Sort By</option>
         <option value="price-asc">Price: Low → High</option>
@@ -27,5 +20,3 @@ function FilterBar({ setSearch, setCategory, setSort }) {
     </div>
   );
 }
-
-export default FilterBar;

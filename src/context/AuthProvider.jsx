@@ -1,51 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
 
-const DEMO_USERS = [
-  { email: "admin@store.com", password: "123456", name: "Admin User" },
-  { email: "user@store.com",  password: "123456", name: "John Doe" },
-];
-
-function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem("auth_user");
-    return stored ? JSON.parse(stored) : null;
+export default function AuthProvider({ children }) {
+  const [token, setToken] = useState(() => localStorage.getItem("userToken") || null);
+  const [user, setUser]   = useState(() => {
+    const u = localStorage.getItem("authUser");
+    return u ? JSON.parse(u) : null;
   });
 
-  const login = (email, password) => {
-    const found = DEMO_USERS.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (found) {
-      const userData = { email: found.email, name: found.name };
-      setUser(userData);
-      localStorage.setItem("auth_user", JSON.stringify(userData));
-      return { success: true };
-    }
-    return { success: false, error: "Invalid email or password" };
-  };
-
-  const register = (name, email, password) => {
-    const exists = DEMO_USERS.find((u) => u.email === email);
-    if (exists) return { success: false, error: "Email already registered" };
-    const newUser = { email, password, name };
-    DEMO_USERS.push(newUser);
-    const userData = { email, name };
+  const saveToken = (tok, userData) => {
+    localStorage.setItem("userToken", tok);
+    localStorage.setItem("authUser", JSON.stringify(userData));
+    setToken(tok);
     setUser(userData);
-    localStorage.setItem("auth_user", JSON.stringify(userData));
-    return { success: true };
   };
 
   const logout = () => {
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("authUser");
+    setToken(null);
     setUser(null);
-    localStorage.removeItem("auth_user");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ token, user, saveToken, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
-
-export default AuthProvider;

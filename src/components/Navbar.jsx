@@ -1,39 +1,37 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useContext, useState, useRef, useEffect } from "react";
-import { CartContext } from "../context/CartContext";
+import { CartContext }    from "../context/CartContext";
 import { WishlistContext } from "../context/WishlistContext";
-import { ThemeContext } from "../context/ThemeContext";
-import { AuthContext } from "../context/AuthContext";
+import { ThemeContext }   from "../context/ThemeContext";
+import { AuthContext }    from "../context/AuthContext";
 
-function Navbar() {
-  const { cartCount } = useContext(CartContext);
-  const { wishlist } = useContext(WishlistContext);
-  const { theme, toggleTheme } = useContext(ThemeContext);
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [userMenu, setUserMenu] = useState(false);
-  const menuRef = useRef(null);
+export default function Navbar() {
+  const { cartCount, fetchCart }     = useContext(CartContext);
+  const { wishlist }                 = useContext(WishlistContext);
+  const { theme, toggleTheme }       = useContext(ThemeContext);
+  const { user, logout }             = useContext(AuthContext);
+  const navigate                     = useNavigate();
+  const [userMenu, setUserMenu]      = useState(false);
+  const menuRef                      = useRef(null);
 
-  // Close menu on outside click
+  // fetch cart count on mount
+  useEffect(() => { fetchCart(); }, []);
+
   useEffect(() => {
-    const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setUserMenu(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    const h = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setUserMenu(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
   }, []);
 
   const handleLogout = () => {
     logout();
     setUserMenu(false);
-    navigate("/");
+    navigate("/auth");
   };
 
   return (
     <nav className="nav">
-      <h2>
-        <Link to="/" className="logo">Store</Link>
-      </h2>
+      <Link to="/" className="logo">Store</Link>
 
       <div className="nav-links">
         <Link to="/brands" className="nav-link">Brands</Link>
@@ -54,14 +52,11 @@ function Navbar() {
           {cartCount > 0 && <span className="badge">{cartCount}</span>}
         </Link>
 
-        {/* User menu */}
         <div className="user-menu-wrap" ref={menuRef}>
           <button className="user-btn" onClick={() => setUserMenu((p) => !p)}>
-            <span className="user-avatar">
-              {user?.name?.[0]?.toUpperCase() || "?"}
-            </span>
+            <span className="user-avatar">{user?.name?.[0]?.toUpperCase()}</span>
             <span className="user-name">{user?.name?.split(" ")[0]}</span>
-            <span className={`chevron ${userMenu ? "open" : ""}`}>▾</span>
+            <span className={`chevron ${userMenu ? "open":""}`}>▾</span>
           </button>
 
           {userMenu && (
@@ -70,17 +65,11 @@ function Navbar() {
                 <span className="dropdown-name">{user?.name}</span>
                 <span className="dropdown-email">{user?.email}</span>
               </div>
-              <div className="dropdown-divider" />
-              <Link to="/wishlist" className="dropdown-item" onClick={() => setUserMenu(false)}>
-                ❤️ My Wishlist
-              </Link>
-              <Link to="/cart" className="dropdown-item" onClick={() => setUserMenu(false)}>
-                🛒 My Cart
-              </Link>
-              <div className="dropdown-divider" />
-              <button className="dropdown-item logout" onClick={handleLogout}>
-                🚪 Sign Out
-              </button>
+              <div className="dropdown-divider"/>
+              <Link to="/wishlist" className="dropdown-item" onClick={() => setUserMenu(false)}>❤️ My Wishlist</Link>
+              <Link to="/cart"     className="dropdown-item" onClick={() => setUserMenu(false)}>🛒 My Cart</Link>
+              <div className="dropdown-divider"/>
+              <button className="dropdown-item logout" onClick={handleLogout}>🚪 Sign Out</button>
             </div>
           )}
         </div>
@@ -88,5 +77,3 @@ function Navbar() {
     </nav>
   );
 }
-
-export default Navbar;

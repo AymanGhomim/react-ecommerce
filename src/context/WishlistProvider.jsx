@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { WishlistContext } from "./WishlistContext";
 import toast from "react-hot-toast";
 
-function WishlistProvider({ children }) {
-  const [wishlist, setWishlist] = useState([]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("wishlist");
-    if (stored) setWishlist(JSON.parse(stored));
-  }, []);
+// Wishlist stays local (API doesn't have wishlist endpoint)
+export default function WishlistProvider({ children }) {
+  const [wishlist, setWishlist] = useState(() => {
+    const s = localStorage.getItem("wishlist");
+    return s ? JSON.parse(s) : [];
+  });
 
   useEffect(() => {
     localStorage.setItem("wishlist", JSON.stringify(wishlist));
@@ -16,17 +15,17 @@ function WishlistProvider({ children }) {
 
   const toggleWishlist = (product) => {
     setWishlist((prev) => {
-      const exists = prev.find((i) => i.id === product.id);
+      const exists = prev.find((i) => i._id === product._id || i.id === product.id);
       if (exists) {
         toast("Removed from wishlist", { icon: "💔" });
-        return prev.filter((i) => i.id !== product.id);
+        return prev.filter((i) => (i._id || i.id) !== (product._id || product.id));
       }
       toast.success("Added to wishlist! ❤️");
       return [...prev, product];
     });
   };
 
-  const isWishlisted = (id) => wishlist.some((i) => i.id === id);
+  const isWishlisted = (id) => wishlist.some((i) => (i._id || i.id) === id);
 
   return (
     <WishlistContext.Provider value={{ wishlist, toggleWishlist, isWishlisted }}>
@@ -34,5 +33,3 @@ function WishlistProvider({ children }) {
     </WishlistContext.Provider>
   );
 }
-
-export default WishlistProvider;

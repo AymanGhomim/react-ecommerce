@@ -4,10 +4,10 @@ import { CartContext } from "../context/CartContext";
 import { WishlistContext } from "../context/WishlistContext";
 import StarRating from "./StarRating";
 
-function ProductCard({ product }) {
-  const { addToCart } = useContext(CartContext);
+export default function ProductCard({ product }) {
+  const { addToCart }                = useContext(CartContext);
   const { toggleWishlist, isWishlisted } = useContext(WishlistContext);
-  const wishlisted = isWishlisted(product.id);
+  const wishlisted = isWishlisted(product._id);
 
   return (
     <div className="card">
@@ -19,24 +19,21 @@ function ProductCard({ product }) {
         {wishlisted ? "❤️" : "🤍"}
       </button>
 
-      <Link to={`/product/${product.id}`}>
-        <img src={product.image} alt={product.title} />
+      <Link to={`/product/${product._id}`}>
+        <img src={product.imageCover} alt={product.title} />
       </Link>
 
-      <h4>{product.title.slice(0, 45)}…</h4>
+      <span className="product-category">{product.category?.name}</span>
+      <h4>{product.title.split(" ").slice(0, 5).join(" ")}…</h4>
 
-      {product.rating && (
-        <StarRating rating={product.rating.rate} count={product.rating.count} />
-      )}
+      <StarRating rating={product.ratingsAverage} count={product.ratingsQuantity} />
 
-      <p className="price">${product.price}</p>
+      <p className="price">{product.price} EGP</p>
 
       <div className="actions">
-        <Link to={`/product/${product.id}`} className="details-link">Details</Link>
-        <button onClick={() => addToCart(product)}>Add to Cart</button>
+        <Link to={`/product/${product._id}`} className="details-link">Details</Link>
+        <button onClick={() => addToCart(product._id)}>Add to Cart</button>
       </div>
     </div>
   );
 }
-
-export default ProductCard;

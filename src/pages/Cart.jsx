@@ -1,12 +1,16 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 
-function Cart() {
-  const { cart, removeFromCart, updateQty, clearCart } = useContext(CartContext);
-  const total = cart.reduce((acc, i) => acc + i.price * i.qty, 0);
+export default function Cart() {
+  const { cart, fetchCart, updateQty, removeFromCart, clearCart, cartCount } = useContext(CartContext);
 
-  if (cart.length === 0) {
+  useEffect(() => { fetchCart(); }, []);
+
+  const products = cart?.products || [];
+  const total    = cart?.totalCartPrice || 0;
+
+  if (!cart || products.length === 0) {
     return (
       <div className="empty-page">
         <div className="empty-icon">🛒</div>
@@ -20,33 +24,33 @@ function Cart() {
   return (
     <div className="cart">
       <div className="cart-header">
-        <h2>Your Cart ({cart.reduce((a, i) => a + i.qty, 0)} items)</h2>
+        <h2>Your Cart ({cartCount} items)</h2>
         <button className="clear-btn" onClick={clearCart}>Clear All</button>
       </div>
 
-      {cart.map((item) => (
-        <div key={item.id} className="cart-item">
-          <img src={item.image} alt={item.title} className="cart-item-img" />
+      {products.map((item) => (
+        <div key={item.product._id} className="cart-item">
+          <img src={item.product.imageCover} alt={item.product.title} className="cart-item-img" />
 
           <div className="cart-item-info">
-            <h4>{item.title.slice(0, 50)}…</h4>
-            <p className="cart-item-price">${(item.price * item.qty).toFixed(2)}</p>
+            <h4>{item.product.title.split(" ").slice(0, 6).join(" ")}…</h4>
+            <p className="cart-item-price">{(item.price * item.count).toFixed(0)} EGP</p>
           </div>
 
           <div className="qty-controls">
-            <button onClick={() => updateQty(item.id, -1)}>−</button>
-            <span>{item.qty}</span>
-            <button onClick={() => updateQty(item.id, +1)}>+</button>
+            <button onClick={() => updateQty(item.product._id, item.count - 1)}>−</button>
+            <span>{item.count}</span>
+            <button onClick={() => updateQty(item.product._id, item.count + 1)}>+</button>
           </div>
 
-          <button className="remove-btn" onClick={() => removeFromCart(item.id)}>
+          <button className="remove-btn" onClick={() => removeFromCart(item.product._id)}>
             🗑️
           </button>
         </div>
       ))}
 
       <div className="cart-footer">
-        <h3>Total: <span className="total-amount">${total.toFixed(2)}</span></h3>
+        <h3>Total: <span className="total-amount">{total} EGP</span></h3>
         <Link to="/checkout" className="btn-primary checkout-btn">
           Proceed to Checkout →
         </Link>
@@ -54,5 +58,3 @@ function Cart() {
     </div>
   );
 }
-
-export default Cart;

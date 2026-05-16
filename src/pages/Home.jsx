@@ -1,40 +1,34 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import ProductCard from "../components/ProductCard";
 import FilterBar from "../components/FilterBar";
 import Skeleton from "../components/Skeleton";
-import extraProducts from "../data/mockProducts";
 
-function Home() {
+export default function Home() {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState("");
   const [category, setCategory] = useState("");
-  const [sort, setSort] = useState("");
+  const [sort, setSort]         = useState("");
 
   useEffect(() => {
-    axios.get("https://fakestoreapi.com/products").then((res) => {
-      // Merge API products (20) + mock products (80+) = 100+
-      const merged = [...res.data, ...extraProducts];
-      setProducts(merged);
-      setLoading(false);
-    }).catch(() => {
-      // If API fails, use mock products only
-      setProducts(extraProducts);
-      setLoading(false);
-    });
+    axios.get("https://ecommerce.routemisr.com/api/v1/products?limit=40")
+      .then((res) => {
+        setProducts(res.data.data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const filtered = products
-    .filter(
-      (p) =>
-        p.title.toLowerCase().includes(search.toLowerCase()) &&
-        (category ? p.category === category : true)
+    .filter((p) =>
+      p.title.toLowerCase().includes(search.toLowerCase()) &&
+      (category ? p.category?.name === category : true)
     )
     .sort((a, b) => {
-      if (sort === "price-asc") return a.price - b.price;
-      if (sort === "price-desc") return b.price - a.price;
-      if (sort === "rating-desc") return b.rating.rate - a.rating.rate;
+      if (sort === "price-asc")    return a.price - b.price;
+      if (sort === "price-desc")   return b.price - a.price;
+      if (sort === "rating-desc")  return b.ratingsAverage - a.ratingsAverage;
       return 0;
     });
 
@@ -52,17 +46,14 @@ function Home() {
         {loading
           ? Array(12).fill().map((_, i) => <Skeleton key={i} />)
           : filtered.length > 0
-          ? filtered.map((p) => <ProductCard key={p.id} product={p} />)
+          ? filtered.map((p) => <ProductCard key={p._id} product={p} />)
           : (
             <div className="no-results">
               <span>🔍</span>
               <p>No products found for "<strong>{search}</strong>"</p>
             </div>
-          )
-        }
+          )}
       </div>
     </>
   );
 }
-
-export default Home;
