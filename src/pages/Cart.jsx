@@ -1,16 +1,26 @@
 import { useContext, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate }    from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 
 export default function Cart() {
-  const { cart, fetchCart, updateQty, removeFromCart, clearCart, cartCount } = useContext(CartContext);
+  const { cart, cartLoading, fetchCart, updateQty, removeFromCart, clearCart, cartCount } =
+    useContext(CartContext);
+  const navigate = useNavigate();
 
-  useEffect(() => { fetchCart(); }, []);
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   const products = cart?.products || [];
   const total    = cart?.totalCartPrice || 0;
 
-  if (!cart || products.length === 0) {
+  // Still loading — show spinner
+  if (cartLoading) {
+    return <div className="loading-center"><div className="spinner" /></div>;
+  }
+
+  // Done loading, cart is empty
+  if (!cartLoading && products.length === 0) {
     return (
       <div className="empty-page">
         <div className="empty-icon">🛒</div>
@@ -30,7 +40,11 @@ export default function Cart() {
 
       {products.map((item) => (
         <div key={item.product._id} className="cart-item">
-          <img src={item.product.imageCover} alt={item.product.title} className="cart-item-img" />
+          <img
+            src={item.product.imageCover}
+            alt={item.product.title}
+            className="cart-item-img"
+          />
 
           <div className="cart-item-info">
             <h4>{item.product.title.split(" ").slice(0, 6).join(" ")}…</h4>

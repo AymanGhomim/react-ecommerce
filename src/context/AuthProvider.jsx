@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AuthContext } from "./AuthContext";
 
 export default function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem("userToken") || null);
   const [user, setUser]   = useState(() => {
-    const u = localStorage.getItem("authUser");
-    return u ? JSON.parse(u) : null;
+    try {
+      const u = localStorage.getItem("authUser");
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
   });
 
   const saveToken = (tok, userData) => {

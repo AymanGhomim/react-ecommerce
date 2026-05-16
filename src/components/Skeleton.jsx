@@ -1,12 +1,10 @@
-function Skeleton() {
+export default function Skeleton() {
   return (
-    <div className="skeleton">
-      <div className="skeleton-img"></div>
-      <div className="skeleton-line"></div>
-      <div className="skeleton-line short"></div>
-      <div className="skeleton-line short"></div>
+    <div className="skeleton" aria-hidden="true">
+      <div className="skeleton-img" />
+      <div className="skeleton-line" />
+      <div className="skeleton-line short" />
+      <div className="skeleton-line short" />
     </div>
   );
 }
-
-export default Skeleton;

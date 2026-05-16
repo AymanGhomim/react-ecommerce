@@ -1294,3 +1294,11 @@ body[data-theme="light"] .nav { background: rgba(255,255,255,0.88); }
   text-decoration: line-through;
   margin-top: -10px;
 }
+
+/* processing spinner row inside button */
+.processing-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}

@@ -1,7 +1,7 @@
 import { useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link }       from "react-router-dom";
 import { WishlistContext } from "../context/WishlistContext";
-import { CartContext } from "../context/CartContext";
+import { CartContext }     from "../context/CartContext";
 import StarRating from "../components/StarRating";
 
 export default function Wishlist() {
@@ -23,25 +23,46 @@ export default function Wishlist() {
     <div className="wishlist-page">
       <h2 className="page-title">My Wishlist ({wishlist.length})</h2>
       <div className="grid">
-        {wishlist.map((product) => (
-          <div key={product._id || product.id} className="card">
-            <button className="wish-btn active" onClick={() => toggleWishlist(product)}>❤️</button>
+        {wishlist.map((product) => {
+          const pid = product._id || product.id;
+          const img = product.imageCover || product.image;
+          return (
+            <div key={pid} className="card">
+              <button
+                type="button"
+                className="wish-btn active"
+                onClick={() => toggleWishlist(product)}
+                title="Remove from wishlist"
+              >
+                ❤️
+              </button>
 
-            <Link to={`/product/${product._id || product.id}`}>
-              <img src={product.imageCover || product.image} alt={product.title} />
-            </Link>
+              <Link to={`/product/${pid}`}>
+                <img src={img} alt={product.title} />
+              </Link>
 
-            <span className="product-category">{product.category?.name}</span>
-            <h4>{product.title.split(" ").slice(0, 5).join(" ")}…</h4>
-            <StarRating rating={product.ratingsAverage || product.rating?.rate} count={product.ratingsQuantity || product.rating?.count} />
-            <p className="price">{product.price} {product.currency || "EGP"}</p>
+              {product.category?.name && (
+                <span className="product-category">{product.category.name}</span>
+              )}
 
-            <div className="actions">
-              <button onClick={() => addToCart(product._id || product.id)}>Add to Cart</button>
-              <Link to={`/product/${product._id || product.id}`} className="details-link">Details</Link>
+              <h4>{product.title.split(" ").slice(0, 5).join(" ")}…</h4>
+
+              <StarRating
+                rating={product.ratingsAverage ?? product.rating?.rate}
+                count={product.ratingsQuantity ?? product.rating?.count}
+              />
+
+              <p className="price">{product.price} EGP</p>
+
+              <div className="actions">
+                <button type="button" onClick={() => addToCart(pid)}>
+                  Add to Cart
+                </button>
+                <Link to={`/product/${pid}`} className="details-link">Details</Link>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
