@@ -1,64 +1,56 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useContext, useState, useRef, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import { CartContext }     from "../context/CartContext";
 import { WishlistContext } from "../context/WishlistContext";
 import { ThemeContext }    from "../context/ThemeContext";
 import { AuthContext }     from "../context/AuthContext";
 
 export default function Navbar() {
-  const { cartCount, fetchCart }   = useContext(CartContext);
-  const { wishlist }               = useContext(WishlistContext);
-  const { theme, toggleTheme }     = useContext(ThemeContext);
-  const { user, logout }           = useContext(AuthContext);
-  const navigate                   = useNavigate();
-  const location                   = useLocation();
-  const [userMenu, setUserMenu]    = useState(false);
-  const [mobileOpen, setMobile]    = useState(false);
-  const menuRef                    = useRef(null);
+  const { cartCount, fetchCart } = useContext(CartContext);
+  const { wishlist }             = useContext(WishlistContext);
+  const { theme, toggleTheme }   = useContext(ThemeContext);
+  const { user, logout }         = useContext(AuthContext);
+  const navigate                 = useNavigate();
+  const location                 = useLocation();
+  const [mobileOpen, setMobile]  = useState(false);
 
   useEffect(() => { fetchCart(); }, [fetchCart]);
-
-  useEffect(() => {
-    const h = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setUserMenu(false);
-    };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, []);
-
-  // Close mobile menu on route change
   useEffect(() => { setMobile(false); }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
-    setUserMenu(false);
+    setMobile(false);
     navigate("/auth");
   };
 
-  const isActive = (path) => location.pathname === path ? "nav-link active" : "nav-link";
+  const isActive = (path) =>
+    location.pathname === path ? "nav-link active" : "nav-link";
 
   const NAV_LINKS = [
-    { to: "/",         label: "Home"     },
-    { to: "/products", label: "Products" },
-    { to: "/brands",   label: "Brands"   },
+    { to: "/",         label: "🏠 Home"     },
+    { to: "/products", label: "📦 Products" },
+    { to: "/brands",   label: "🏷️ Brands"   },
+    { to: "/wishlist", label: `❤️ Wishlist (${wishlist.length})` },
+    { to: "/cart",     label: `🛒 Cart (${cartCount})` },
   ];
 
   return (
     <nav className="nav">
-      {/* Logo */}
+
+      {/* Logo — always visible */}
       <Link to="/" className="logo">Store</Link>
 
-      {/* Desktop links */}
+      {/* ── Desktop links (hidden on mobile) ── */}
       <div className="nav-links">
-        {NAV_LINKS.map(({ to, label }) => (
-          <Link key={to} to={to} className={isActive(to)}>{label}</Link>
-        ))}
+        <Link to="/"         className={isActive("/")}>Home</Link>
+        <Link to="/products" className={isActive("/products")}>Products</Link>
+        <Link to="/brands"   className={isActive("/brands")}>Brands</Link>
       </div>
 
-      {/* Right side */}
-      <div className="nav-right">
+      {/* ── Desktop right side (hidden on mobile) ── */}
+      <div className="nav-right nav-right-desktop">
         <button type="button" onClick={toggleTheme} className={`theme-btn ${theme}`}>
-          {theme === "dark" ? "☀️" : "🌙"}
+          {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
         </button>
 
         <Link to="/wishlist" className="nav-icon-link" aria-label="Wishlist">
@@ -71,55 +63,77 @@ export default function Navbar() {
           {cartCount > 0 && <span className="badge">{cartCount}</span>}
         </Link>
 
-        {/* User dropdown */}
-        <div className="user-menu-wrap" ref={menuRef}>
-          <button type="button" className="user-btn" onClick={() => setUserMenu((p) => !p)}>
-            <span className="user-avatar">{user?.name?.[0]?.toUpperCase() || "?"}</span>
-            <span className="user-name">{user?.name?.split(" ")[0]}</span>
-            <span className={`chevron ${userMenu ? "open" : ""}`}>▾</span>
-          </button>
-
-          {userMenu && (
-            <div className="user-dropdown">
-              <div className="dropdown-header">
-                <span className="dropdown-name">{user?.name}</span>
-                <span className="dropdown-email">{user?.email}</span>
-              </div>
-              <div className="dropdown-divider" />
-              <Link to="/wishlist" className="dropdown-item" onClick={() => setUserMenu(false)}>❤️ My Wishlist</Link>
-              <Link to="/cart"     className="dropdown-item" onClick={() => setUserMenu(false)}>🛒 My Cart</Link>
-              <div className="dropdown-divider" />
-              <button type="button" className="dropdown-item logout" onClick={handleLogout}>🚪 Sign Out</button>
-            </div>
-          )}
+        <div className="user-info-desktop">
+          <span className="user-avatar">{user?.name?.[0]?.toUpperCase() || "?"}</span>
+          <span className="user-name">{user?.name?.split(" ")[0]}</span>
         </div>
 
-        {/* Mobile hamburger */}
+        <button type="button" className="desktop-logout" onClick={handleLogout}
+          title="Sign Out">🚪</button>
+      </div>
+
+      {/* ── Mobile: hamburger only ── */}
+      <button
+        type="button"
+        className={`hamburger ${mobileOpen ? "is-open" : ""}`}
+        onClick={() => setMobile((p) => !p)}
+        aria-label="Toggle menu"
+        aria-expanded={mobileOpen}
+      >
+        <span className="ham-line" />
+        <span className="ham-line" />
+        <span className="ham-line" />
+      </button>
+
+      {/* ── Mobile drawer ── */}
+      <div className={`mobile-drawer ${mobileOpen ? "drawer-open" : ""}`}>
+        {/* User header */}
+        <div className="drawer-user">
+          <span className="drawer-avatar">{user?.name?.[0]?.toUpperCase() || "?"}</span>
+          <div>
+            <p className="drawer-name">{user?.name}</p>
+            <p className="drawer-email">{user?.email}</p>
+          </div>
+        </div>
+
+        <div className="drawer-divider" />
+
+        {/* Nav links */}
+        {NAV_LINKS.map(({ to, label }) => (
+          <Link
+            key={to}
+            to={to}
+            className={`drawer-link ${location.pathname === to ? "drawer-link-active" : ""}`}
+            onClick={() => setMobile(false)}
+          >
+            {label}
+          </Link>
+        ))}
+
+        <div className="drawer-divider" />
+
+        {/* Theme toggle */}
         <button
           type="button"
-          className="hamburger"
-          onClick={() => setMobile((p) => !p)}
-          aria-label="Toggle menu"
+          className="drawer-link drawer-theme"
+          onClick={() => { toggleTheme(); }}
         >
-          <span className={`ham-line ${mobileOpen ? "open" : ""}`} />
-          <span className={`ham-line ${mobileOpen ? "open" : ""}`} />
-          <span className={`ham-line ${mobileOpen ? "open" : ""}`} />
+          {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+        </button>
+
+        {/* Sign out */}
+        <button
+          type="button"
+          className="drawer-link drawer-logout"
+          onClick={handleLogout}
+        >
+          🚪 Sign Out
         </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* Overlay behind drawer */}
       {mobileOpen && (
-        <div className="mobile-menu">
-          {NAV_LINKS.map(({ to, label }) => (
-            <Link key={to} to={to} className="mobile-link">{label}</Link>
-          ))}
-          <Link to="/wishlist" className="mobile-link">❤️ Wishlist ({wishlist.length})</Link>
-          <Link to="/cart"     className="mobile-link">🛒 Cart ({cartCount})</Link>
-          <div className="mobile-divider" />
-          <button type="button" className="mobile-link logout-mobile" onClick={handleLogout}>
-            🚪 Sign Out
-          </button>
-        </div>
+        <div className="drawer-overlay" onClick={() => setMobile(false)} />
       )}
     </nav>
   );
