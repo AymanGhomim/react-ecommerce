@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link }    from "react-router-dom";
 import api from "../api/axios";
 import { CartContext }     from "../context/CartContext";
 import { WishlistContext } from "../context/WishlistContext";
-import StarRating from "../components/StarRating";
+import StarRating     from "../components/StarRating";
+import ProductCard    from "../components/ProductCard";
 
 export default function ProductDetails() {
   const { id }                             = useParams();
@@ -111,19 +112,7 @@ export default function ProductDetails() {
           <h2>You May Also Like</h2>
           <div className="grid">
             {recommendations.map((rec) => (
-              <div key={rec._id} className="card">
-                <Link to={`/product/${rec._id}`}>
-                  <img src={rec.imageCover} alt={rec.title} />
-                </Link>
-                <span className="product-category">{rec.category?.name}</span>
-                <h4>{rec.title.split(" ").slice(0, 4).join(" ")}…</h4>
-                <StarRating rating={rec.ratingsAverage} />
-                <p className="price">{rec.price} EGP</p>
-                <div className="actions">
-                  <button onClick={() => addToCart(rec._id)}>Add to Cart</button>
-                  <Link to={`/product/${rec._id}`} className="details-link">Details</Link>
-                </div>
-              </div>
+              <ProductCard key={rec._id} product={rec} />
             ))}
           </div>
         </section>
