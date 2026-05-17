@@ -6,10 +6,10 @@
   --black: #0b0b0b;
   --dark: #161616;
   --dark2: #1e1e1e;
-  --gold: #d4af37;
-  --gold-soft: #e6c86e;
-  --gold-dim: rgba(212, 175, 55, 0.15);
-  --gold-glow: rgba(212, 175, 55, 0.25);
+  --gold: #3b82f6;
+  --gold-soft: #60a5fa;
+  --gold-dim: rgba(59, 130, 246, 0.15);
+  --gold-glow: rgba(59, 130, 246, 0.25);
   --text: #f0f0f0;
   --muted: #9a9a9a;
   --border: rgba(212, 175, 55, 0.15);
