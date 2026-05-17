@@ -15,39 +15,46 @@ export default function Navbar() {
   const [mobileOpen, setMobile]  = useState(false);
 
   useEffect(() => { fetchCart(); }, [fetchCart]);
+
+  // Close drawer on ANY route change
   useEffect(() => { setMobile(false); }, [location.pathname]);
+
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  const close = () => setMobile(false);
 
   const handleLogout = () => {
     logout();
-    setMobile(false);
+    close();
     navigate("/auth");
+  };
+
+  const handleTheme = () => {
+    toggleTheme();
+    close();
   };
 
   const isActive = (path) =>
     location.pathname === path ? "nav-link active" : "nav-link";
 
-  const NAV_LINKS = [
-    { to: "/",         label: "🏠 Home"     },
-    { to: "/products", label: "📦 Products" },
-    { to: "/brands",   label: "🏷️ Brands"   },
-    { to: "/wishlist", label: `❤️ Wishlist (${wishlist.length})` },
-    { to: "/cart",     label: `🛒 Cart (${cartCount})` },
-  ];
-
   return (
     <nav className="nav">
 
-      {/* Logo — always visible */}
-      <Link to="/" className="logo">Store</Link>
+      {/* ── Logo ─────────────────────────────────── */}
+      <Link to="/" className="logo" onClick={close}>Store</Link>
 
-      {/* ── Desktop links (hidden on mobile) ── */}
+      {/* ── Desktop links ────────────────────────── */}
       <div className="nav-links">
         <Link to="/"         className={isActive("/")}>Home</Link>
         <Link to="/products" className={isActive("/products")}>Products</Link>
         <Link to="/brands"   className={isActive("/brands")}>Brands</Link>
       </div>
 
-      {/* ── Desktop right side (hidden on mobile) ── */}
+      {/* ── Desktop right ────────────────────────── */}
       <div className="nav-right nav-right-desktop">
         <button type="button" onClick={toggleTheme} className={`theme-btn ${theme}`}>
           {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
@@ -68,11 +75,12 @@ export default function Navbar() {
           <span className="user-name">{user?.name?.split(" ")[0]}</span>
         </div>
 
-        <button type="button" className="desktop-logout" onClick={handleLogout}
-          title="Sign Out">🚪</button>
+        <button type="button" className="desktop-logout" onClick={handleLogout} title="Sign Out">
+          🚪
+        </button>
       </div>
 
-      {/* ── Mobile: hamburger only ── */}
+      {/* ── Hamburger ────────────────────────────── */}
       <button
         type="button"
         className={`hamburger ${mobileOpen ? "is-open" : ""}`}
@@ -85,12 +93,20 @@ export default function Navbar() {
         <span className="ham-line" />
       </button>
 
-      {/* ── Mobile drawer ── */}
-      <div className={`mobile-drawer ${mobileOpen ? "drawer-open" : ""}`}>
+      {/* ── Overlay ──────────────────────────────── */}
+      {mobileOpen && (
+        <div className="drawer-overlay" onClick={close} aria-hidden="true" />
+      )}
+
+      {/* ── Mobile drawer ────────────────────────── */}
+      <div
+        className={`mobile-drawer ${mobileOpen ? "drawer-open" : ""}`}
+        aria-hidden={!mobileOpen}
+      >
         {/* User header */}
         <div className="drawer-user">
           <span className="drawer-avatar">{user?.name?.[0]?.toUpperCase() || "?"}</span>
-          <div>
+          <div className="drawer-user-info">
             <p className="drawer-name">{user?.name}</p>
             <p className="drawer-email">{user?.email}</p>
           </div>
@@ -98,43 +114,34 @@ export default function Navbar() {
 
         <div className="drawer-divider" />
 
-        {/* Nav links */}
-        {NAV_LINKS.map(({ to, label }) => (
-          <Link
-            key={to}
-            to={to}
-            className={`drawer-link ${location.pathname === to ? "drawer-link-active" : ""}`}
-            onClick={() => setMobile(false)}
-          >
-            {label}
-          </Link>
-        ))}
+        {/* Nav Links */}
+        <Link to="/"         className={`drawer-link ${location.pathname === "/"         ? "drawer-link-active" : ""}`} onClick={close}>🏠 Home</Link>
+        <Link to="/products" className={`drawer-link ${location.pathname === "/products" ? "drawer-link-active" : ""}`} onClick={close}>📦 Products</Link>
+        <Link to="/brands"   className={`drawer-link ${location.pathname === "/brands"   ? "drawer-link-active" : ""}`} onClick={close}>🏷️ Brands</Link>
 
         <div className="drawer-divider" />
 
-        {/* Theme toggle */}
-        <button
-          type="button"
-          className="drawer-link drawer-theme"
-          onClick={() => { toggleTheme(); }}
-        >
+        <Link to="/wishlist" className={`drawer-link ${location.pathname === "/wishlist" ? "drawer-link-active" : ""}`} onClick={close}>
+          ❤️ Wishlist
+          {wishlist.length > 0 && <span className="drawer-badge">{wishlist.length}</span>}
+        </Link>
+        <Link to="/cart" className={`drawer-link ${location.pathname === "/cart" ? "drawer-link-active" : ""}`} onClick={close}>
+          🛒 Cart
+          {cartCount > 0 && <span className="drawer-badge">{cartCount}</span>}
+        </Link>
+
+        <div className="drawer-divider" />
+
+        {/* Theme */}
+        <button type="button" className="drawer-link drawer-theme" onClick={handleTheme}>
           {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
         </button>
 
-        {/* Sign out */}
-        <button
-          type="button"
-          className="drawer-link drawer-logout"
-          onClick={handleLogout}
-        >
+        {/* Logout */}
+        <button type="button" className="drawer-link drawer-logout" onClick={handleLogout}>
           🚪 Sign Out
         </button>
       </div>
-
-      {/* Overlay behind drawer */}
-      {mobileOpen && (
-        <div className="drawer-overlay" onClick={() => setMobile(false)} />
-      )}
     </nav>
   );
 }
