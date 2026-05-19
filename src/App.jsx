@@ -1,17 +1,19 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Toaster }  from "react-hot-toast";
+import { Toaster }   from "react-hot-toast";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
-import Navbar        from "./components/Navbar";
-import Landing       from "./pages/Landing";
-import Home          from "./pages/Home";
+import Navbar         from "./components/Navbar";
+import Landing        from "./pages/Landing";
+import Home           from "./pages/Home";
 import ProductDetails from "./pages/ProductDetails";
-import Cart          from "./pages/Cart";
-import Wishlist      from "./pages/Wishlist";
-import Checkout      from "./pages/Checkout";
-import Brands        from "./pages/Brands";
-import AuthPage      from "./pages/AuthPage";
-import NotFound      from "./pages/NotFound";
+import Cart           from "./pages/Cart";
+import Wishlist       from "./pages/Wishlist";
+import Checkout       from "./pages/Checkout";
+import Brands         from "./pages/Brands";
+import Orders         from "./pages/Orders";
+import Search         from "./pages/Search";
+import AuthPage       from "./pages/AuthPage";
+import NotFound       from "./pages/NotFound";
 
 function ProtectedRoute({ children }) {
   const { token } = useContext(AuthContext);
@@ -40,10 +42,8 @@ export default function App() {
       {token && <Navbar />}
 
       <Routes>
-        {/* Public */}
-        <Route path="/auth" element={token ? <Navigate to="/" replace /> : <AuthPage />} />
+        <Route path="/auth"       element={token ? <Navigate to="/" replace /> : <AuthPage />} />
 
-        {/* Protected */}
         <Route path="/"            element={<ProtectedRoute><Landing /></ProtectedRoute>} />
         <Route path="/products"    element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/product/:id" element={<ProtectedRoute><ProductDetails /></ProtectedRoute>} />
@@ -51,6 +51,8 @@ export default function App() {
         <Route path="/wishlist"    element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
         <Route path="/checkout"    element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
         <Route path="/brands"      element={<ProtectedRoute><Brands /></ProtectedRoute>} />
+        <Route path="/orders"      element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+        <Route path="/search"      element={<ProtectedRoute><Search /></ProtectedRoute>} />
         <Route path="*"            element={<NotFound />} />
       </Routes>
     </>

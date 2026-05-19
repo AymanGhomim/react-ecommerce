@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import { useContext as useCtx } from "react";
+import { RecentlyViewedContext } from "../context/RecentlyViewedContext";
+import ProductCard from "../components/ProductCard";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import api from "../api/axios";
@@ -39,6 +42,7 @@ const CATEGORIES = [
 
 export default function Landing() {
   const { user } = useContext(AuthContext);
+  const { viewed } = useCtx(RecentlyViewedContext);
   const [featuredProducts, setFeaturedProducts] = useState([]);
 
   useEffect(() => {
@@ -158,6 +162,19 @@ export default function Landing() {
           ))}
         </div>
       </section>
+
+      {/* ── RECENTLY VIEWED ─────────────────────────────── */}
+      {viewed.length > 0 && (
+        <section className="section">
+          <div className="section-header">
+            <h2>Recently Viewed</h2>
+            <p>Pick up where you left off</p>
+          </div>
+          <div className="grid">
+            {viewed.map((p) => <ProductCard key={p._id} product={p} />)}
+          </div>
+        </section>
+      )}
 
       {/* ── CTA ──────────────────────────────────────────── */}
       <section className="cta-section">

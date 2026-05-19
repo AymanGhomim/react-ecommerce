@@ -1,4 +1,5 @@
 import { useContext, useState, useEffect, useRef } from "react";
+import { saveOrder } from "./Orders";
 import { useNavigate }  from "react-router-dom";
 import { CartContext }  from "../context/CartContext";
 import { AuthContext }  from "../context/AuthContext";
@@ -134,6 +135,7 @@ export default function Checkout() {
     setSubmitting(true);
     await new Promise((r) => setTimeout(r, 1800)); // simulate payment processing
     setSubmitting(false);
+    saveOrder(products, total, form.payment);
     setSuccess(true);
   };
 
