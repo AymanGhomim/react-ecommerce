@@ -74,7 +74,7 @@ export default function Navbar() {
         <Link to="/cart" className="nav-icon-link" aria-label="Cart">
           🛒 {cartCount > 0 && <span className="badge">{cartCount}</span>}
         </Link>
-        <div className="user-info-desktop">
+        <div className="user-info-desktop" style={{cursor:"pointer"}} onClick={()=>navigate("/profile")}>
           <span className="user-avatar">{user?.name?.[0]?.toUpperCase() || "?"}</span>
           <span className="user-name">{user?.name?.split(" ")[0]}</span>
         </div>
@@ -133,9 +133,8 @@ export default function Navbar() {
         <Link to="/cart" className={`drawer-link ${location.pathname === "/cart" ? "drawer-link-active" : ""}`} onClick={close}>
           🛒 Cart {cartCount > 0 && <span className="drawer-badge">{cartCount}</span>}
         </Link>
-        <Link to="/orders" className={`drawer-link ${location.pathname === "/orders" ? "drawer-link-active" : ""}`} onClick={close}>
-          📋 My Orders
-        </Link>
+        <Link to="/orders"   className={`drawer-link ${location.pathname === "/orders"   ? "drawer-link-active" : ""}`} onClick={close}>📋 My Orders</Link>
+        <Link to="/profile" className={`drawer-link ${location.pathname === "/profile"  ? "drawer-link-active" : ""}`} onClick={close}>👤 Profile</Link>
 
         <div className="drawer-divider" />
 

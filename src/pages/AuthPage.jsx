@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { useNavigate }    from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useFormik }      from "formik";
 import * as Yup           from "yup";
 import axios              from "axios";
@@ -72,6 +72,10 @@ function LoginForm({ onSwitch }) {
           )}
         </div>
       ))}
+
+      <div className="fp-link-row">
+        <Link to="/forgot-password" className="auth-switch-btn">Forgot password?</Link>
+      </div>
 
       <button
         type="button"
